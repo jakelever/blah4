@@ -5,7 +5,7 @@ rank=$1
 lambda_A=$2
 lambda_R=$3
 
-name="$rank\_$lambda_A\_$lambda_R"
+name=$rank"_"$lambda_A"_"$lambda_R
 
 mkdir -p intermediate
 mkdir -p crossvalidated
