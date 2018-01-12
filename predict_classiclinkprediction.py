@@ -11,6 +11,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Make link predictions using the RESCAL ALS algorithm')
 	parser.add_argument('--trainingData',required=True,type=str,help='Training data with tab-delimited columns: pmid,reltype,id1,type1,term1,id2,type2,term2')
 	parser.add_argument('--testingData',required=True,type=str,help='Testing data with tab-delimited columns: pmid,reltype,id1,type1,term1,id2,type2,term2,posOrNeg')
+	parser.add_argument('--method',required=True,type=str,help='Which link prediction method to use')
 	parser.add_argument('--outFile',required=True,type=str,help='Output file (tab-delimited) of score and pos/neg as 1/0')
 	args = parser.parse_args()
 
@@ -57,25 +58,32 @@ if __name__ == '__main__':
 			testingData.append(tupleAsID)
 
 	print("Building graphs")
-	X = [ nx.Graph() for _ in reltypesSeen ]
-	for g in X:
-		g.add_nodes_from(list(range(len(idsSeen))))
+	g = nx.Graph()
+	g.add_nodes_from(list(range(len(idsSeen))))
 
 	for a,b,c in tuplesAsIDs:
-		X[a].add_edge(b,c)
+		g.add_edge(b,c)
 
-	perGraph = defaultdict(list)
+	edgesToPredict = []
 	for (relID,eID1,eID2,isPos) in testingData:
-		perGraph[relID].append((eID1,eID2))
+		edgesToPredict.append((eID1,eID2))
 
-	preds = {}
-	for relID,edgesToPredict in perGraph.items():
-		preds[relID] = LinkPrediction.CommonNeighbors(X[relID],edgesToPredict)
+	funcs = {'DegreeProduct': LinkPrediction.DegreeProduct,
+		'CommonNeighbors': LinkPrediction.CommonNeighbors,
+		'Jaccard': LinkPrediction.Jaccard,
+		'Sorensen': LinkPrediction.Sorensen,
+		'LHN': LinkPrediction.LHN,
+		'ShortestPath': LinkPrediction.ShortestPath,
+		'ResourceAllocation': LinkPrediction.ResourceAllocation,
+		'AdamicAdvar': LinkPrediction.AdamicAdvar}
+	func = funcs[args.method]
+
+	preds = func(g,edgesToPredict)
 
 	print("Extracting score for test points")
 	testingScores = []
 	for (relID,eID1,eID2,isPos) in testingData:
-		score = preds[relID][(eID1,eID2)]
+		score = preds[(eID1,eID2)]
 		testingScores.append((score,isPos))
 
 	print("Outputting to file")
