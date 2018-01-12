@@ -39,7 +39,7 @@ if __name__ == '__main__':
 			precision = reweight*TP / float(reweight*TP + (1-reweight)*FP)
 		if TP+FN != 0:
 			recall = TP / float(TP+FN)
-		if TP+FP != 0 and TP+FN != 0:
+		if precision+recall != 0:
 			fscore = 2 * (precision*recall) / (precision+recall)
 
 		curPoints.append((recall,precision))
