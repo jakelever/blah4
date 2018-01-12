@@ -9,16 +9,14 @@ import itertools
 import random
 import sys
 
-def predict_rescal_als(T):
+def predict_rescal_als(T,rank,lambda_A,lambda_R):
 	A, R, _, _, _ = rescal_als(
-		T, 10, init='nvecs', conv=1e-4,
-		lambda_A=0, lambda_R=0
+		T, rank, init='nvecs', conv=1e-4,
+		lambda_A=lambda_A, lambda_R=lambda_R
 	)
 	n = A.shape[0]
 	P = zeros((n, n, len(R)))
 	for k in range(len(R)):
-		print(A.shape, R[k].shape)
-		print(R[k])
 		P[:, :, k] = dot(A, dot(R[k], A.T))
 	return P
 
@@ -26,6 +24,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Make link predictions using the RESCAL ALS algorithm')
 	parser.add_argument('--trainingData',required=True,type=str,help='Training data with tab-delimited columns: pmid,reltype,id1,type1,term1,id2,type2,term2')
 	parser.add_argument('--testingData',required=True,type=str,help='Testing data with tab-delimited columns: pmid,reltype,id1,type1,term1,id2,type2,term2,posOrNeg')
+	parser.add_argument('--rank',required=True,type=int,help='rank parameter for ALS')
+	parser.add_argument('--lambda_A',required=True,type=float,help='lambda_A parameter for ALS')
+	parser.add_argument('--lambda_R',required=True,type=float,help='lambda_A parameter for ALS')
 	parser.add_argument('--outFile',required=True,type=str,help='Output file (tab-delimited) of score and pos/neg as 1/0')
 	args = parser.parse_args()
 
@@ -79,7 +80,7 @@ if __name__ == '__main__':
 
 	print("Running RESCAL")
 	logging.basicConfig(level=logging.INFO)
-	preds = predict_rescal_als(X)
+	preds = predict_rescal_als(X,args.rank,args.lambda_A,args.lambda_R)
 
 	print("Extracting score for test points")
 	idCount = len(idsSeen)
