@@ -1,0 +1,4 @@
+data/20180111-graph-train-test/entityCounts.subset.tsv
+data/20180111-graph-train-test/relationCounts.subset.tsv.gz
+
+results/20180112-coscores/run
