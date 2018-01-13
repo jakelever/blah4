@@ -5,6 +5,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='')
 	parser.add_argument('--data',required=True,type=str,help='Tab-delimited file with first column is score and second column is 0/1 for negative/positive')
 	parser.add_argument('--classbalance',required=True,type=float,help='Class balance for calculating precision metric')
+	parser.add_argument('--prCurveData',required=False,type=str,help='Output file to give precision recall curve data')
 	args = parser.parse_args()
 
 	reweight = args.classbalance
@@ -61,4 +62,10 @@ if __name__ == '__main__':
 	areaUnderPRCurve = sklearn.metrics.auc(recalls, precisions)
 			
 	print(areaUnderPRCurve)
+
+	if args.prCurveData:
+		with open(args.prCurveData,'w') as f:
+			f.write("recall\tprecision\n")
+			for r,p in curPoints:
+				f.write("%f\t%f\n" % (r,p))
 
