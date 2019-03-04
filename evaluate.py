@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
 	curPoints = []
 
-	for _,isPos in scoreData:
+	for score,isPos in scoreData:
 		if isPos:
 			TP += 1
 		else:
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 			fscore = 2 * (precision*recall) / (precision+recall)
 
 		curPoints.append((recall,precision))
-		#print(TP,FP,TN,FN,precision,recall,fscore)
+		#print(score,TP,FP,TN,FN,precision,recall,fscore)
 		if fscore > bestFScore:
 			bestFScore = fscore
 			#print(TP,FP,TN,FN,precision,recall,fscore)

@@ -28,7 +28,7 @@ if __name__ == '__main__':
 	parser.add_argument('--lambda_A',required=True,type=float,help='lambda_A parameter for ALS')
 	parser.add_argument('--lambda_R',required=True,type=float,help='lambda_A parameter for ALS')
 	parser.add_argument('--outFile',required=True,type=str,help='Output file (tab-delimited) of score and pos/neg as 1/0')
-	parser.add_argument('--outPredictions',required=True,type=str,help='Output predictions with scores above an arbitrary threshold')
+	parser.add_argument('--outPredictions',required=False,type=str,help='Output predictions with scores above an arbitrary threshold')
 	args = parser.parse_args()
 
 	tuples = set()
@@ -102,17 +102,19 @@ if __name__ == '__main__':
 		with open(args.outPredictions,'w') as outF:
 			thresholdPreds = preds.copy()
 			thresholdPreds[thresholdPreds < 0.1] = 0
-			testingSimplified = set( [ (eID1,eID2,relID) for (relID,eID1,eID2,isPos) in testingData if isPos ] )
-			aboveThresholdIndices = list(zip(*preds.nonzero()))
-			merged = list(set(list(testingSimplified) + list(aboveThresholdIndices)))
+			testingSimplified = { (eID1,eID2,relID):isPos for (relID,eID1,eID2,isPos) in testingData }
+			aboveThresholdIndices = list(zip(*thresholdPreds.nonzero()))
+			merged = list(set(list(testingSimplified.keys()) + list(aboveThresholdIndices)))
 			for i,j,k in merged:
 				orig = X[k][i,j]
 				score = preds[i,j,k]
-				inTest = 1 if (i,j,k) in testingSimplified else 0
+				testVal = 'N/A'
+				if (i,j,k) in testingSimplified:
+					testVal = 1 if testingSimplified[(i,j,k)] else 0
 				reltype,id1,id2 = index2reltype[k],index2id[j],index2id[i]
 				type1,term1 = id2TypeTerm[id1]
 				type2,term2 = id2TypeTerm[id2]
 
-				outData = [int(orig),inTest,score,reltype,id1,type1,term1,id2,type2,term2]
+				outData = [int(orig),testVal,score,reltype,id1,type1,term1,id2,type2,term2]
 				outLine = "\t".join(map(str,outData))
 				outF.write(outLine + "\n")
